@@ -1,0 +1,45 @@
+//
+//  {{ module_info.file_name }}
+//  {{ module_info.project_name }}
+//
+//  Created by {{ developer.name }} on {{ date }}.
+//  Copyright © {{ year }} {{ developer.company }}. All rights reserved.
+//
+
+import UIKit
+import Swinject
+
+final class {{ module_info.name }}Configurator {
+    // MARK: - Implementation
+    
+    static func configure() -> Container {
+        let container = Container()
+        container.register({{ module_info.name }}View.self) { r in
+            guard let view = UIStoryboard(name: String(describing: {{ module_info.name }}View.self), bundle: Bundle.main).instantiateInitialViewController() as? {{ module_info.name }}ViewImpl else {
+                fatalError("Can't load {{ module_info.name }}View from storyboard, check that controller is initial view")
+            }
+            
+            view.presenter = r.resolve({{ module_info.name }}Presenter.self)
+            return view
+        }
+
+        container.register({{ module_info.name }}Router.self) { _ in {{ module_info.name }}RouterImpl() }.initCompleted { r, c in
+            let router  = c as! {{ module_info.name }}RouterImpl
+            router.view = r.resolve({{ module_info.name }}View.self)
+        }
+
+        container.register({{ module_info.name }}Presenter.self) { _ in {{ module_info.name }}PresenterImpl() }.initCompleted { r, c in
+            let presenter        = c as! {{ module_info.name }}PresenterImpl
+            presenter.view       = r.resolve({{ module_info.name }}View.self)
+            presenter.router     = r.resolve({{ module_info.name }}Router.self)
+            presenter.interactor = r.resolve({{ module_info.name }}Interactor.self)
+        }
+
+        container.register({{ module_info.name }}Interactor.self) { _ in {{ module_info.name }}InteractorImpl() }.initCompleted { r, c in
+            let interactor       = c as! {{ module_info.name }}InteractorImpl
+            interactor.presenter = r.resolve({{ module_info.name }}Presenter.self)
+        }
+        
+        return container
+    }
+}
