@@ -9,18 +9,21 @@
 import UIKit
 import Swinject
 
-final class {{ module_info.name }}Configurator {
+final class {{ module_info.name }}Configurator: Assembly {
     // MARK: - Implementation
+    func assemble(container: Container) {
+        LoginConfigurator.configure(container: container)
+    }
     
-    static func configure() -> Container {
-        let container = Container()
+    @discardableResult static func configure(container: Container = Container()) -> Container {
         container.register({{ module_info.name }}View.self) { r in
-            guard let view = UIStoryboard(name: String(describing: {{ module_info.name }}View.self), bundle: Bundle.main).instantiateInitialViewController() as? {{ module_info.name }}ViewImpl else {
+            guard let view = UIStoryboard(name: String(describing: {{ module_info.name }}View.self), bundle: Bundle.main).instantiateInitialViewController() as? {{ module_info.name }}View else {
                 fatalError("Can't load {{ module_info.name }}View from storyboard, check that controller is initial view")
             }
-            
-            view.presenter = r.resolve({{ module_info.name }}Presenter.self)
             return view
+        }.initCompleted { r, c in
+            let view       = c as! LoginViewImpl
+            view.presenter = r.resolve(LoginPresenter.self)
         }
 
         container.register({{ module_info.name }}Router.self) { _ in {{ module_info.name }}RouterImpl() }.initCompleted { r, c in
